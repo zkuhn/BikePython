@@ -14,21 +14,27 @@ class BikeKinematics :
         return self.estimated_pose
 
     def get_front_wheel_travel(self, ticks):
-        print(self.ticks_per_revolution)
+        #in python 2.x need to convert to float first
         rotation = float (ticks) / self.ticks_per_revolution
-        print("rotation")
-        print(rotation)
+        
+        #print("rotation")
+        #print(rotation)
         return rotation * self.get_front_circumfrence()
 
     def get_front_circumfrence(self) :
         return self.front_radius * 2 * math.pi
 
     def estimate(self, time, steering_angle, encoder_ticks, angular_velocity):
-
-        print(self.front_radius) 
-        print(encoder_ticks)
+        """Return a pose that shows the bike's position after movement.
+        The trig for this just uses SOH CAH TOA to measure unit circle 
+        movement, then scales it to the rear wheel travel radius
+        Use the negative radius and radians travelled convention for
+        right hand turns. sin and tan give you the negatives back by default
+        """
+        #print(self.front_radius) 
+        #print(encoder_ticks)
         total_front_distance = self.get_front_wheel_travel(encoder_ticks)
-        print(total_front_distance)
+        #print(total_front_distance)
 
 
         #default case of moving in a stright line
@@ -40,15 +46,15 @@ class BikeKinematics :
         steering_radius = self.get_turning_radius(steering_angle)
         radians_travelled = total_front_distance / steering_radius
 
-        print("steering radius: ")
-        print(steering_radius)
-        print(" Radians travelled" )
-        print (radians_travelled)
+        #print("steering radius: ")
+        #print(steering_radius)
+        #print(" Radians travelled" )
+        #print (radians_travelled)
 
 
         new_heading = self.estimated_pose.heading + radians_travelled
-        print( "New heading: ")
-        print(new_heading)
+        #print( "New heading: ")
+        #print(new_heading)
 
         #cheat here a bit and use a negative turn radius for right hand turns..
         #it makes our travel vectors correct based on left/right turning
@@ -60,7 +66,7 @@ class BikeKinematics :
         travel_vector_x = ( math.sin(new_heading) - math.sin(self.estimated_pose.heading) ) * rear_wheel_turn_radius
         travel_vector_y = - (math.cos(new_heading) - math.cos(self.estimated_pose.heading) ) * rear_wheel_turn_radius
 
-        print(travel_vector_x)
+        #print(travel_vector_x)
 
         self.estimated_pose.x += travel_vector_x
         self.estimated_pose.y += travel_vector_y
