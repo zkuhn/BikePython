@@ -18,7 +18,7 @@ class BikeKinematics :
     def get_front_circumfrence(self) :
         return self.frontRadius * 2 * math.pi
 
-    def estimate(self, time, steering_angle, encoder_ticks, angular_velocity)
+    def estimate(self, time, steering_angle, encoder_ticks, angular_velocity):
 
         total_front_distance = self.get_front_wheel_travel(encoder_ticks)
 
@@ -46,14 +46,25 @@ class BikeKinematics :
         return self.estimated_pose
 
 
-    def get_turning_radius(self, steering_angle)
+    def get_turning_radius(self, steering_angle) :
+
+        sin_steer = math.sin(steering_angle)
+        return self.hub_distance / sin_steer
+
+    def normalize_heading(heading):
+        
+        if heading > math.pi :
+            return normalize_heading(heading - (2 * math.pi) )
+        if heading <= -math.pi :
+            return normalize_heading(heading + (2 * math.pi) )
+        return heading;
+
+    def get_turning_radius(steering_angle):
+        """Calculates the radius of the circle the front wheel traces while travelling in a turn
+        """
 
         sin_steer = math.sin(steering_angle)
         return self.hub_distance / sin_steer
 
 
 
-
-
-
-   
