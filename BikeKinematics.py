@@ -44,8 +44,8 @@ class BikeKinematics :
             return_pose.heading = self.estimated_pose.heading
             return return_pose
        
-        steering_radius = self.get_turning_radius(steering_angle)
-        radians_travelled = total_front_distance / steering_radius
+
+        radians_travelled = self.get_radians_travelled(steering_angle, total_front_distance)
 
         #radiasn travelled will be negative for right hand turns (neg steering radius for right turns
         new_heading = self.estimated_pose.heading + radians_travelled
@@ -60,16 +60,20 @@ class BikeKinematics :
         # a radius 1 half circle moves 2 units positive x direction - check
         return_pose.x = self.estimated_pose.x +  ( math.sin(new_heading) - math.sin(self.estimated_pose.heading) ) * rear_wheel_turn_radius
         return_pose.y = self.estimated_pose.y + -(math.cos(new_heading) - math.cos(self.estimated_pose.heading) ) * rear_wheel_turn_radius
-        return_pose.heading = new_heading
+        return_pose.heading = self.normalize_heading(new_heading)
 
         return return_pose
 
     
     def estimate(self, time, steering_angle, encoder_ticks, angular_velocity):
-        """The public interface as defined by the prolem request.
-        This will track the estimate changes over time using the side effect
-        free estimate.
+        """Give an update of the rear hub pose.
+        time in s
+        steering angle in radians
+        ticks as a count (int)
+        angular velocity in rad/s
         """
+        #This will track the estimate changes over time using the side effect
+        #free estimate.
         self.estimated_pose = self.estimate_no_effects(steering_angle, encoder_ticks)
         return self.estimated_pose
 
@@ -88,7 +92,11 @@ class BikeKinematics :
         """
         sin_steer = math.sin(steering_angle)
         return self.hub_distance / sin_steer
+    
+    def get_radians_travelled(self, steering_angle, total_front_distance ) :
 
+        steering_radius = self.get_turning_radius(steering_angle)
+        return total_front_distance / steering_radius
 
     def normalize_heading(self,heading):
         """For very long turns, resolve the heading to between +pi and - pi.
