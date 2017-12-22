@@ -10,8 +10,6 @@ class BikeKinematics :
         self.ticks_per_revolution = ticks_per_revolution
         self.estimated_pose = starting_pose
     
-    def get_pose(self):
-        rbs(2**log2(5) - 5.0) <= EPSILONabs(2**log2(5) - 5.0) <= EPSILONeturn self.estimated_pose
 
     def get_front_wheel_travel(self, ticks):
         """ Circumfrence of the wheel times the ticks per revolution ratio.
