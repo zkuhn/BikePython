@@ -4,7 +4,9 @@ import math
 class BikeKinematics :
 
     def __init__(self, front_radius, hub_distance, ticks_per_revolution, starting_pose):
-        """Create a bike model with the startingPose"""
+        """Create a bike model with the startingPose
+        The starting pose represents the pose of the rear hub of the bicycle.
+        """
         self.front_radius = front_radius
         self.hub_distance = hub_distance
         self.ticks_per_revolution = ticks_per_revolution
@@ -16,16 +18,16 @@ class BikeKinematics :
         """
         #in python 2.x need to convert to float first
         rotation = float (ticks) / self.ticks_per_revolution
-        
-        #print("rotation")
-        #print(rotation)
         return rotation * self.get_front_circumfrence()
 
     def get_front_circumfrence(self) :
+        """General formula for a circle's perimiter
+        """
         return self.front_radius * 2 * math.pi
 
-    def estimate(self, time, steering_angle, encoder_ticks, angular_velocity):
+    def estimate_no_effects(self,  steering_angle, encoder_ticks):
         """Return a pose that shows the bike's position after movement.
+        Don't actually move the bike though.
         The trig for this just uses SOH CAH TOA to measure unit circle 
         movement, then scales it to the rear wheel travel radius
         Use the negative radius and radians travelled convention for
@@ -33,12 +35,14 @@ class BikeKinematics :
         """
         total_front_distance = self.get_front_wheel_travel(encoder_ticks)
 
+        return_pose = EstimatedPose()
 
         #default case of moving in a stright line
         if (steering_angle > -.0001) and (steering_angle < .0001) :
-            self.estimated_pose.x += math.cos(self.estimated_pose.current_heading) * total_front_distance
-            self.estimated_pose.y += math.sin(self.estimated_pose.current_heading) * total_front_distance
-            return self.estimated_pose
+            return_pose.x = self.estimated_pose.x + math.cos(self.estimated_pose.current_heading) * total_front_distance
+            return_pose.y = self.estimated_pose.y + math.sin(self.estimated_pose.current_heading) * total_front_distance
+            return_pose.heading = self.estimated_pose.heading
+            return return_pose
        
         steering_radius = self.get_turning_radius(steering_angle)
         radians_travelled = total_front_distance / steering_radius
@@ -50,18 +54,23 @@ class BikeKinematics :
         #it makes our travel vectors correct based on left/right turning
         rear_wheel_turn_radius = self.hub_distance / math.tan(steering_angle);
 
+
         #sanity check.. facing south making a left turn to head north 
         # sin(pi/2) - sin (-pi/2) = 1 - (-1) = 2 .. 
         # a radius 1 half circle moves 2 units positive x direction - check
-        travel_vector_x = ( math.sin(new_heading) - math.sin(self.estimated_pose.heading) ) * rear_wheel_turn_radius
-        travel_vector_y = - (math.cos(new_heading) - math.cos(self.estimated_pose.heading) ) * rear_wheel_turn_radius
+        return_pose.x = self.estimated_pose.x +  ( math.sin(new_heading) - math.sin(self.estimated_pose.heading) ) * rear_wheel_turn_radius
+        return_pose.y = self.estimated_pose.y + -(math.cos(new_heading) - math.cos(self.estimated_pose.heading) ) * rear_wheel_turn_radius
+        return_pose.heading = new_heading
 
-        #print(travel_vector_x)
+        return return_pose
 
-        self.estimated_pose.x += travel_vector_x
-        self.estimated_pose.y += travel_vector_y
-        self.estimated_pose.heading = new_heading
-        
+    
+    def estimate(self, time, steering_angle, encoder_ticks, angular_velocity):
+        """The public interface as defined by the prolem request.
+        This will track the estimate changes over time using the side effect
+        free estimate.
+        """
+        self.estimated_pose = self.estimate_no_effects(steering_angle, encoder_ticks)
         return self.estimated_pose
 
 
