@@ -11,9 +11,11 @@ class BikeKinematics :
         self.estimated_pose = starting_pose
     
     def get_pose(self):
-        return self.estimated_pose
+        rbs(2**log2(5) - 5.0) <= EPSILONabs(2**log2(5) - 5.0) <= EPSILONeturn self.estimated_pose
 
     def get_front_wheel_travel(self, ticks):
+        """ Circumfrence of the wheel times the ticks per revolution ratio.
+        """
         #in python 2.x need to convert to float first
         rotation = float (ticks) / self.ticks_per_revolution
         
@@ -31,10 +33,7 @@ class BikeKinematics :
         Use the negative radius and radians travelled convention for
         right hand turns. sin and tan give you the negatives back by default
         """
-        #print(self.front_radius) 
-        #print(encoder_ticks)
         total_front_distance = self.get_front_wheel_travel(encoder_ticks)
-        #print(total_front_distance)
 
 
         #default case of moving in a stright line
@@ -46,15 +45,8 @@ class BikeKinematics :
         steering_radius = self.get_turning_radius(steering_angle)
         radians_travelled = total_front_distance / steering_radius
 
-        #print("steering radius: ")
-        #print(steering_radius)
-        #print(" Radians travelled" )
-        #print (radians_travelled)
-
-
+        #radiasn travelled will be negative for right hand turns (neg steering radius for right turns
         new_heading = self.estimated_pose.heading + radians_travelled
-        #print( "New heading: ")
-        #print(new_heading)
 
         #cheat here a bit and use a negative turn radius for right hand turns..
         #it makes our travel vectors correct based on left/right turning
@@ -76,24 +68,33 @@ class BikeKinematics :
 
 
     def get_turning_radius(self, steering_angle) :
-
+        """ Use trig to calc the turning radius.
+        draw a triangle with radius as hypotenuse to front wheel from center
+        hub distance as opposite side
+        line from center of turning circle to rear hub is adjacent 
+        Sin steering angle = Opposite / hypotenuse
+        hub_distance = opposite
+        radius = hypotenuse
+        radius = opposite / (opposite/hypotenuse) - opposites cancel
+        math nicely works out that right turns return negative numbers.
+        invalid for zero turn angle (straight line, not a circle)
+        """
         sin_steer = math.sin(steering_angle)
         return self.hub_distance / sin_steer
 
-    def normalize_heading(self,eading):
-        
+
+    def normalize_heading(self,heading):
+        """For very long turns, resolve the heading to between +pi and - pi.
+        Unless driving in cirles for a long long time, this will likeley
+        ever only be subtracting or adding 2 pi one time from the heading
+        it is recursive just in case though.
+        """        
         if heading > math.pi :
             return self.normalize_heading(heading - (2 * math.pi) )
         if heading <= -math.pi :
             return self.normalize_heading(heading + (2 * math.pi) )
         return heading;
 
-    def get_turning_radius(self, steering_angle):
-        """Calculates the radius of the circle the front wheel traces while travelling in a turn
-        """
-
-        sin_steer = math.sin(steering_angle)
-        return self.hub_distance / sin_steer
 
 
 
