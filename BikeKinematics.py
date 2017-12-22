@@ -5,7 +5,7 @@ class BikeKinematics :
 
     def __init__(self, front_radius, hub_distance, ticks_per_revolution, starting_pose):
         """Create a bike model with the startingPose
-        The starting pose represents the pose of the rear hub of the bicycle.
+        The starting pose (EstimatedPose) represents the pose of the rear hub of the bicycle.
         """
         self.front_radius = front_radius
         self.hub_distance = hub_distance
